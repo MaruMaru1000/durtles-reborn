@@ -26,4 +26,7 @@ local.properties
 /.idea/
 /.kotlin/
 
+# Local agent instructions: keep them on this machine, not in the public repo.
+/AGENTS.md
+
 graphify-out/
