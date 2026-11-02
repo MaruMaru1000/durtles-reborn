@@ -2,6 +2,9 @@ package com.example.durtlesreborn.reading.ui
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.example.durtlesreborn.reading.core.ArticleScore
@@ -81,6 +84,10 @@ class ReadingController(
 ) {
     private val _library = MutableStateFlow(LibraryState())
     val library: StateFlow<LibraryState> = _library.asStateFlow()
+
+    /** Web-reader text settings, shared across articles while the feature is alive. */
+    var webFontZoom by mutableIntStateOf(100)
+    var webLineWidth by mutableIntStateOf(40)
 
     private val seedMutex = Mutex()
     private val refreshMutex = Mutex()
