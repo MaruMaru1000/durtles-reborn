@@ -13,6 +13,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -47,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -73,6 +76,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.durtlesreborn.data.HomeCounts
+import com.example.durtlesreborn.DurtlesApp
+import com.example.durtlesreborn.data.AppWaniKaniReadOnly
+import com.example.durtlesreborn.reading.bridge.ReadingFeatureFactory
+import com.example.durtlesreborn.reading.bridge.ReadingNavigator
+import com.example.durtlesreborn.reading.bridge.ReadingRouteHost
+import com.example.durtlesreborn.reading.core.ReadingPalette
 import com.example.durtlesreborn.session.QuestionKind
 import com.example.durtlesreborn.session.StageMove
 import com.example.durtlesreborn.session.QuizCard
@@ -85,6 +94,48 @@ private const val TOKEN_PAGE = "https://www.wanikani.com/settings/personal_acces
 fun AppRoot(viewModel: MainViewModel) {
     val state by viewModel.state.collectAsState()
     val audioDownload by viewModel.audioDownload.collectAsState()
+    val settings by viewModel.settings.collectAsState()
+
+    // Graded Reading lives in its own modules; the app only builds the bridge object and renders
+    // its host when a route is open. When the flag is off the feature is inert: no UI, no work.
+    val context = LocalContext.current
+    val stageColors = LocalStageColors.current
+    val actionColors = LocalActionColors.current
+    val palette = remember(stageColors, actionColors) {
+        ReadingPalette(
+            apprentice = stageColors.apprentice.toArgb(),
+            guru = stageColors.guru.toArgb(),
+            master = stageColors.master.toArgb(),
+            enlightened = stageColors.enlightened.toArgb(),
+            burned = stageColors.burned.toArgb(),
+            locked = actionColors.locked.toArgb(),
+        )
+    }
+    val feature = remember(settings.gradedReading) {
+        val app = context.applicationContext as DurtlesApp
+        ReadingFeatureFactory.create(app, AppWaniKaniReadOnly(app.container.database), palette, settings.gradedReading)
+    }
+    LaunchedEffect(feature, palette) { feature.updatePalette(palette) }
+    LaunchedEffect(feature, settings.gradedReading) {
+        if (settings.gradedReading) feature.scheduleWork(context) else feature.cancelWork(context)
+    }
+    // A new feature object (flag switched, or the screen recreated) replaces the old one; release
+    // its database collectors so the old instance cannot keep working in the background.
+    DisposableEffect(feature) {
+        onDispose { feature.close() }
+    }
+    val readingRoute by feature.route.collectAsState()
+    val navigator = remember(feature) {
+        object : ReadingNavigator {
+            override fun openWaniKaniItem(subjectId: Long) {
+                feature.closeReading()
+                viewModel.openDetail(subjectId)
+            }
+
+            override fun closeReading() = Unit
+        }
+    }
+
     // Back from a sub-screen goes to where it was opened from instead of closing the app.
     BackHandler(enabled = state is UiState.Settings || state is UiState.AudioLevels || state is UiState.Search || state is UiState.Detail || state is UiState.StatsView || state is UiState.Levels || state is UiState.StageItems) {
         when (state) {
@@ -100,6 +151,10 @@ fun AppRoot(viewModel: MainViewModel) {
     }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.safeDrawingPadding()) {
+            if (readingRoute != null) {
+                BackHandler { feature.closeReading() }
+                ReadingRouteHost(feature)
+            } else {
             when (val s = state) {
                 UiState.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
                 is UiState.NeedsToken -> TokenScreen(s, viewModel::submitToken)
@@ -118,6 +173,12 @@ fun AppRoot(viewModel: MainViewModel) {
                         dismissMessage = viewModel::dismissMessage,
                         resumeSession = viewModel::resumeSession,
                         discardSession = viewModel::discardSavedSession,
+                        // A failed start leaves the feature disabled even with the setting on.
+                        openReading = if (feature.enabled) {
+                            { feature.entryPoint.openLibrary(navigator) }
+                        } else {
+                            null
+                        },
                     ),
                 )
                 is UiState.StageItems -> StageScreen(s, viewModel::setStageKind, viewModel::openDetail, viewModel::closeStage)
@@ -132,7 +193,11 @@ fun AppRoot(viewModel: MainViewModel) {
                     viewModel::downloadLevelAudio, viewModel::cancelAudioDownload,
                 )
                 is UiState.Search -> SearchScreen(s, viewModel::onSearchCriteria, viewModel::openDetail, viewModel::startSelfStudy, viewModel::closeSearch)
-                is UiState.Detail -> ItemDetailScreen(s, viewModel::closeDetail, viewModel::openDetail, viewModel::playAudio)
+                is UiState.Detail -> ItemDetailScreen(
+                    s, viewModel::closeDetail, viewModel::openDetail, viewModel::playAudio,
+                    readingExamples = feature.examples,
+                    onOpenReadingArticle = { id -> feature.entryPoint.openArticle(id, navigator) },
+                )
                 is UiState.StatsView -> StatsScreen(s.stats, viewModel::closeStats)
                 is UiState.Quiz -> QuizScreen(
                     s, viewModel::onInputChange, viewModel::onSubmit, viewModel::onDontKnow,
@@ -140,6 +205,7 @@ fun AppRoot(viewModel: MainViewModel) {
                     viewModel::onLeaveSession, viewModel::lessonInfo, viewModel::playAudio,
                 )
                 is UiState.Summary -> SummaryScreen(s, viewModel::closeSummary)
+            }
             }
         }
     }

@@ -90,6 +90,8 @@ data class DashboardActions(
     val dismissMessage: () -> Unit,
     val resumeSession: () -> Unit,
     val discardSession: () -> Unit,
+    /** Null when the Graded Reading feature flag is off: the icon is hidden. */
+    val openReading: (() -> Unit)? = null,
 )
 
 /** What a tile's long-press card says about when it is next reviewed. */
@@ -167,6 +169,7 @@ private fun DashboardTopBar(level: Int?, username: String?, a: DashboardActions)
         )
         IconButton(onClick = a.openSearch) { Icon(AppIcons.Search, "Search") }
         IconButton(onClick = { a.openLevels(level) }) { Icon(AppIcons.Book, "Levels") }
+        a.openReading?.let { open -> IconButton(onClick = open) { Icon(AppIcons.Reading, "Graded reading") } }
         IconButton(onClick = a.openSettings) { Icon(AppIcons.Settings, "Settings") }
     }
 }

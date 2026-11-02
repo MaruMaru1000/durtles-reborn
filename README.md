@@ -11,6 +11,7 @@ An unofficial Android client for [WaniKani](https://www.wanikani.com), written f
 - **Answer feedback** — a rounded panel after every answer, green for correct and red for wrong, both derived from the active theme. Wrong answers hide the accepted answer unless you turn that on; swipe up, tap the reveal button, or tap the panel for the full details.
 - **Self-study** — quiz whatever a search matches, without touching your WaniKani progress.
 - **Item pages** — meaning, reading, mnemonics, example sentences, related subjects, stroke order for radicals and single kanji, and pitch accent where it is known.
+- **Graded Reading** (optional, off by default) — pull articles from NHK News Web Easy, Tadoku and Aozora Bunko, or add your own RSS/Atom feed. Articles are tokenized on the device and WaniKani words are tinted by SRS stage, with known-word and known-kanji coverage, a "ready level", a native reader and a WebView fallback. Item pages gain "seen in your reading" examples. The cache is capped at 30 days / 50 MB and is never uploaded.
 - **Audio** — vocabulary pronunciation clips, downloaded by level and playable offline.
 - **Ten themes** — Dynamic (wallpaper colours), Light, Dark, Black (OLED), Matcha, Sandstone, Nord, Forest, Crabcroc and Sakura, plus a stage-name display toggle.
 - **Notifications and a home-screen widget** — an hourly "reviews are waiting" check, and a 2×2 widget with Lessons and Reviews cards that follows the theme.
@@ -60,6 +61,11 @@ app/src/main/java/com/example/durtlesreborn/
   settings/   DataStore settings and backup/restore
   strokes/    stroke-order data
   ui/         Compose screens, theme and icons
+reading-core/     pure Kotlin tokenizing, matching and article scoring
+reading-sources/  NHK Easy / RSS / index fetching and text extraction
+reading-store/    Room cache for sources, articles and example sentences
+reading-ui/       library, reader and WebView screens
+reading-bridge/   the only reading module the app compiles against
 app/src/main/assets/   stroke order (KanjiVG) and pitch accents (Kanjium)
 docs/                  parity checklists and release notes
 ```
@@ -74,6 +80,8 @@ Two data files are bundled and are the only third-party content in the app:
 | `app/src/main/assets/pitch_accents.txt` | [Kanjium](https://github.com/mifunetoshiro/kanjium) by Uros O. | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 
 Attribution and licence notices for both sit next to the files in `app/src/main/assets/` (the full CC BY-SA 4.0 legal text for Kanjium, and the KanjiVG attribution with the CC BY-SA 3.0 link). This project's own code is licensed separately; the data files are redistributed unmodified in substance, only repacked.
+
+Graded Reading uses Kuromoji 0.9.0 with the IPADIC dictionary (Apache 2.0, with the NAIST/ICOT dictionary notice). The APK strips dependency `META-INF` notices, so that notice is kept in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Licence
 

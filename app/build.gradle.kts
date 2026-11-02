@@ -55,6 +55,12 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            // Kuromoji's core and IPADIC jars both carry these metadata files.
+            excludes += setOf("META-INF/*.md", "META-INF/LICENSE*", "META-INF/NOTICE*")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -63,6 +69,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":reading-bridge"))
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

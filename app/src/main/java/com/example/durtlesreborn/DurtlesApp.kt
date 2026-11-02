@@ -1,13 +1,17 @@
 package com.example.durtlesreborn
 
 import android.app.Application
+import com.example.durtlesreborn.data.AppWaniKaniReadOnly
 import com.example.durtlesreborn.notify.NotificationScheduler
 import com.example.durtlesreborn.notify.WidgetUpdater
+import com.example.durtlesreborn.reading.bridge.ReadingFeatureFactory
+import com.example.durtlesreborn.reading.bridge.ReadingRuntime
 import com.example.durtlesreborn.sync.SyncScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -18,6 +22,18 @@ class DurtlesApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // The periodic reading worker can start in a fresh process, before any screen exists.
+        ReadingRuntime.backgroundFactory = {
+            if (container.settingsStore.settings.first().gradedReading) {
+                ReadingFeatureFactory.createForBackground(
+                    context = this@DurtlesApp,
+                    wanikani = AppWaniKaniReadOnly(container.database),
+                    enabled = true,
+                )
+            } else {
+                null
+            }
+        }
         // Keep WorkManager's periodic sync in line with the setting.
         appScope.launch {
             container.settingsStore.settings

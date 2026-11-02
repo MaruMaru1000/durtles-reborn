@@ -105,6 +105,8 @@ object SettingsBackup {
         Spec("theme", "String", { it.theme }, { s, v -> themeName(v)?.let { s.copy(theme = it) } }),
         Spec("text_stage_labels", "Boolean", { it.textStageLabels.toString() },
             { s, v -> bool(v)?.let { s.copy(textStageLabels = it) } }),
+        Spec("graded_reading", "Boolean", { it.gradedReading.toString() },
+            { s, v -> bool(v)?.let { s.copy(gradedReading = it) } }),
     )
 
     /** How many settings a backup written now contains. */

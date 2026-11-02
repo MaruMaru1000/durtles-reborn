@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.example.durtlesreborn.data.SearchCriteria
 import com.example.durtlesreborn.data.SearchResult
 import com.example.durtlesreborn.data.StageGroup
+import com.example.durtlesreborn.reading.bridge.ReadingExamples
 import com.example.durtlesreborn.session.SubjectKind
 
 @Composable
@@ -143,13 +144,22 @@ fun ItemDetailScreen(
     onBack: () -> Unit,
     onOpen: (Long) -> Unit,
     onPlayAudio: (Long) -> Unit,
+    readingExamples: ReadingExamples? = null,
+    onOpenReadingArticle: ((Long) -> Unit)? = null,
 ) {
     val d = state.detail
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 12.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = onBack) { Text("Back") }
         }
-        SubjectCardContent(d.info, Modifier.weight(1f), onOpen = onOpen, onPlayAudio = onPlayAudio) {
+        SubjectCardContent(
+            d.info,
+            Modifier.weight(1f),
+            onOpen = onOpen,
+            onPlayAudio = onPlayAudio,
+            readingExamples = readingExamples,
+            onOpenReadingArticle = onOpenReadingArticle,
+        ) {
             Text(
                 buildString {
                     append(d.stage.label)

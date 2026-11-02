@@ -139,6 +139,13 @@ fun SettingsScreen(
         }
         SwitchRow("Sync when the app is opened", null, s.syncOnOpen) { onChange { it.copy(syncOnOpen = !it.syncOnOpen) } }
 
+        Section("Graded Reading")
+        SwitchRow(
+            "Enable Graded Reading",
+            "Read articles scored against your WaniKani progress, with words coloured by SRS stage and example sentences on item pages. Articles are cached only on this phone.",
+            s.gradedReading,
+        ) { onChange { it.copy(gradedReading = !it.gradedReading) } }
+
         Section("Reviews")
         SwitchRow(
             "Send results when the session ends",

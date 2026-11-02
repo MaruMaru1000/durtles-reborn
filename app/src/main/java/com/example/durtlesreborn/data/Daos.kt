@@ -3,9 +3,14 @@ package com.example.durtlesreborn.data
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SubjectDao {
+    /** Read-only feed for the graded reading feature; never written by it. */
+    @Query("SELECT * FROM subject WHERE hidden = 0")
+    fun allFlow(): Flow<List<SubjectEntity>>
+
     @Upsert
     suspend fun upsert(subjects: List<SubjectEntity>)
 
@@ -36,6 +41,10 @@ interface SubjectDao {
 interface AssignmentDao {
     @Upsert
     suspend fun upsert(assignments: List<AssignmentEntity>)
+
+    /** Read-only feed for the graded reading feature; never written by it. */
+    @Query("SELECT * FROM assignment WHERE hidden = 0")
+    fun allFlow(): Flow<List<AssignmentEntity>>
 
     @Query("SELECT * FROM assignment WHERE id = :id")
     suspend fun byId(id: Long): AssignmentEntity?

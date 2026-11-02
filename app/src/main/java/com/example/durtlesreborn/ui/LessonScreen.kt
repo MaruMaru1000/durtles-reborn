@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +43,10 @@ import com.example.durtlesreborn.data.PitchAccent
 import com.example.durtlesreborn.data.RelatedGroup
 import com.example.durtlesreborn.data.RelatedSubject
 import com.example.durtlesreborn.data.ReadingInfo
+import com.example.durtlesreborn.reading.bridge.ReadingExample
+import com.example.durtlesreborn.reading.bridge.ReadingExamples
 import com.example.durtlesreborn.session.SubjectKind
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** One lesson card: the subject, then Back / Next (the last card starts the quiz). */
 @Composable
@@ -90,6 +94,9 @@ fun SubjectCardContent(
     onOpen: ((Long) -> Unit)? = null,
     /** When set and the item has audio, tapping the characters plays the pronunciation. */
     onPlayAudio: ((Long) -> Unit)? = null,
+    /** The item screen's "seen in your reading" provider; null in lessons. */
+    readingExamples: ReadingExamples? = null,
+    onOpenReadingArticle: ((Long) -> Unit)? = null,
     header: @Composable ColumnScope.() -> Unit = {},
 ) {
     Column(
@@ -157,6 +164,9 @@ fun SubjectCardContent(
                     }
                 }
             }
+        }
+        if (readingExamples != null) {
+            SeenInReading(info.id, readingExamples, onOpenReadingArticle)
         }
         for (group in info.related) if (group !== componentKanji) RelatedSection(group, onOpen)
         StrokeOrderSection(info)
@@ -281,5 +291,44 @@ fun subjectColor(kind: SubjectKind?): androidx.compose.ui.graphics.Color {
         SubjectKind.RADICAL -> palette.radical
         SubjectKind.KANJI -> palette.kanji
         else -> palette.vocabulary
+    }
+}
+
+/** Loads the item screen's examples: a failure, a timeout or no rows all hide the section. */
+internal suspend fun loadReadingExamples(
+    provider: ReadingExamples,
+    subjectId: Long,
+    timeoutMillis: Long = 1500,
+): List<ReadingExample> = withTimeoutOrNull(timeoutMillis) {
+    runCatching { provider.examplesFor(subjectId.toInt(), 3) }.getOrDefault(emptyList())
+} ?: emptyList()
+
+/** "Seen in your reading": up to three example sentences from cached articles, when there are any. */
+@Composable
+private fun SeenInReading(
+    subjectId: Long,
+    provider: ReadingExamples,
+    onOpenArticle: ((Long) -> Unit)?,
+) {
+    var examples by remember(subjectId, provider) { mutableStateOf<List<ReadingExample>>(emptyList()) }
+    LaunchedEffect(subjectId, provider) {
+        examples = loadReadingExamples(provider, subjectId)
+    }
+    if (examples.isEmpty()) return
+    CardSection("Seen in your reading", false) {
+        for (example in examples) {
+            var itemModifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)
+            if (onOpenArticle != null) itemModifier = itemModifier.clickable { onOpenArticle(example.articleId) }
+            Column(itemModifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(example.sentence, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "${example.sourceName} · ${example.articleTitle}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }

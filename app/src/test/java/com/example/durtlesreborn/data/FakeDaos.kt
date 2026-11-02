@@ -19,6 +19,7 @@ internal class FakePending : PendingReviewDao {
 
 internal class FakeSubjects : SubjectDao {
     val rows = mutableMapOf<Long, SubjectEntity>()
+    override fun allFlow() = kotlinx.coroutines.flow.flowOf(rows.values.filter { !it.hidden })
     override suspend fun upsert(subjects: List<SubjectEntity>) { subjects.forEach { rows[it.id] = it } }
     override suspend fun byId(id: Long) = rows[id]
     override suspend fun upToLevel(maxLevel: Int) = rows.values.filter { it.level <= maxLevel && !it.hidden }
@@ -33,6 +34,7 @@ internal class FakeSubjects : SubjectDao {
 
 internal class FakeAssignments : AssignmentDao {
     val rows = mutableMapOf<Long, AssignmentEntity>()
+    override fun allFlow() = kotlinx.coroutines.flow.flowOf(rows.values.filter { !it.hidden })
     override suspend fun bySubjects(subjectIds: List<Long>) = rows.values.filter { it.subjectId in subjectIds }
     override suspend fun upsert(assignments: List<AssignmentEntity>) { assignments.forEach { rows[it.id] = it } }
     override suspend fun byId(id: Long) = rows[id]

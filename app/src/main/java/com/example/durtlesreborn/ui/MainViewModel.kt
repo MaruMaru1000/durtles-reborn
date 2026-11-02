@@ -35,8 +35,10 @@ import com.example.durtlesreborn.session.SessionType
 import com.example.durtlesreborn.session.StageMove
 import com.example.durtlesreborn.session.SubjectOrder
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -162,6 +164,10 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
 
     private val _audioDownload = MutableStateFlow(AudioDownload())
     val audioDownload: StateFlow<AudioDownload> = _audioDownload.asStateFlow()
+
+    /** Settings as a flow, so screens can react to the graded reading flag. */
+    val settings: StateFlow<AppSettings> = container.settingsStore.settings
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
 
     /** A write of the saved session, or null to remove it. Requests run in the order they were made. */
     private class SaveRequest(val snapshot: SessionSnapshot?, val done: CompletableDeferred<Unit> = CompletableDeferred())

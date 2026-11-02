@@ -24,3 +24,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "DurtlesReborn"
 include(":app")
+include(":reading-core")
+include(":reading-sources")
+include(":reading-store")
+include(":reading-ui")
+include(":reading-bridge")

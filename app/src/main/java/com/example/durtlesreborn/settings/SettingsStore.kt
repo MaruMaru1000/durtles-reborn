@@ -62,6 +62,8 @@ data class AppSettings(
     val theme: String = "DYNAMIC",
     /** Under the dashboard tiles, show stage names (A1…Burned) instead of the five-segment bars. */
     val textStageLabels: Boolean = false,
+    /** Feature flag for Graded Reading. Off means no entry, no background work and no examples. */
+    val gradedReading: Boolean = false,
 ) {
     /** The configured order, or shuffle if the stored name is not one the app knows. */
     val subjectOrder: SubjectOrder get() = SubjectOrder.fromName(reviewOrder) ?: SubjectOrder.SHUFFLE
@@ -103,6 +105,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         val notificationCategory = stringPreferencesKey("notification_category")
         val theme = stringPreferencesKey("theme")
         val textStageLabels = booleanPreferencesKey("text_stage_labels")
+        val gradedReading = booleanPreferencesKey("graded_reading")
     }
 
     val settings: Flow<AppSettings> = dataStore.data.map { p ->
@@ -137,6 +140,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
             notificationCategory = p[Keys.notificationCategory] ?: d.notificationCategory,
             theme = p[Keys.theme] ?: d.theme,
             textStageLabels = p[Keys.textStageLabels] ?: d.textStageLabels,
+            gradedReading = p[Keys.gradedReading] ?: d.gradedReading,
         )
     }
 
@@ -170,6 +174,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
             p[Keys.notificationCategory] = next.notificationCategory
             p[Keys.theme] = next.theme
             p[Keys.textStageLabels] = next.textStageLabels
+            p[Keys.gradedReading] = next.gradedReading
         }
     }
 }
