@@ -34,10 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.durtlesreborn.data.LessonInfo
@@ -45,8 +42,6 @@ import com.example.durtlesreborn.data.PitchAccent
 import com.example.durtlesreborn.data.RelatedGroup
 import com.example.durtlesreborn.data.RelatedSubject
 import com.example.durtlesreborn.data.ReadingInfo
-import com.example.durtlesreborn.data.morae
-import com.example.durtlesreborn.data.pitchPattern
 import com.example.durtlesreborn.session.SubjectKind
 
 /** One lesson card: the subject, then Back / Next (the last card starts the quiz). */
@@ -215,30 +210,23 @@ private fun CardSection(title: String, alternate: Boolean, content: @Composable 
 }
 
 /**
- * The pitch accent patterns of the word: one row per reading and accent position, with the high
- * and low morae as letters. The data comes from Kanjium, which the licence requires crediting.
+ * The pitch accent patterns of the word, one diagram per reading and accent position. Each mora is
+ * a dot at high or low pitch, joined by a line that steps where the pitch drops, with a hollow dot
+ * for the following particle. The data comes from Kanjium, which the licence requires crediting.
  */
 @Composable
 private fun PitchSection(pitch: List<PitchAccent>, alternate: Boolean) {
     CardSection("Pitch accent", alternate) {
         for (entry in pitch) {
             for (accent in entry.positions) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                Column(Modifier.padding(vertical = 4.dp)) {
                     Text(entry.reading, style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        "[$accent]",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    PitchPatternText(entry.reading, accent)
+                    PitchDiagram(entry.reading, accent, Modifier.padding(top = 6.dp))
                 }
             }
         }
         Text(
-            "H high · L low · [n] drop after the nth mora",
+            "High dots are accented, low dots unaccented; the hollow dot is the following particle.",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 2.dp),
@@ -249,24 +237,6 @@ private fun PitchSection(pitch: List<PitchAccent>, alternate: Boolean) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-}
-
-/** "L H L" for one accent position, high morae in the theme's accent colour. */
-@Composable
-private fun PitchPatternText(reading: String, accent: Int) {
-    val pattern = pitchPattern(morae(reading).size, accent)
-    val high = MaterialTheme.colorScheme.primary
-    val low = MaterialTheme.colorScheme.onSurfaceVariant
-    Text(
-        text = buildAnnotatedString {
-            pattern.forEachIndexed { index, letter ->
-                if (index > 0) append(' ')
-                withStyle(SpanStyle(color = if (letter == 'H') high else low)) { append(letter) }
-            }
-        },
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.semantics { contentDescription = "Pitch: $pattern" },
-    )
 }
 
 private fun kindLabel(info: LessonInfo) = when (info.kind) {
