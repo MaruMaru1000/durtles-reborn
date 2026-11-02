@@ -122,6 +122,12 @@ fun SubjectCardContent(
         }
         header()
 
+        // A vocabulary word shows the kanji it is made of at the top, centred above the meaning.
+        val componentKanji = info.related.firstOrNull { it.label == "Kanji" }
+        if (componentKanji != null) {
+            RelatedSection(componentKanji, onOpen, centered = true)
+        }
+
         // Each part of the item gets its own rounded panel, alternating between two theme tints
         // so neighbouring sections are easy to tell apart.
         val sections = buildList {
@@ -152,17 +158,28 @@ fun SubjectCardContent(
                 }
             }
         }
-        for (group in info.related) RelatedSection(group, onOpen)
+        for (group in info.related) if (group !== componentKanji) RelatedSection(group, onOpen)
         StrokeOrderSection(info)
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RelatedSection(group: RelatedGroup, onOpen: ((Long) -> Unit)?) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+private fun RelatedSection(group: RelatedGroup, onOpen: ((Long) -> Unit)?, centered: Boolean = false) {
+    Column(
+        modifier = if (centered) Modifier.fillMaxWidth() else Modifier,
+        horizontalAlignment = if (centered) Alignment.CenterHorizontally else Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         Text(group.label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            horizontalArrangement = if (centered) {
+                Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            } else {
+                Arrangement.spacedBy(8.dp)
+            },
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             for (item in group.items) RelatedChip(item, onOpen)
         }
         if (group.more > 0) Text("and ${group.more} more", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
