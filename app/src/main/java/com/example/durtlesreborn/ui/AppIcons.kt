@@ -17,6 +17,15 @@ object AppIcons {
         "M15.5,14h-0.79l-0.28,-0.27C15.41,12.59 16,11.11 16,9.5 16,5.91 13.09,3 9.5,3S3,5.91 3,9.5 5.91,16 9.5,16c1.61,0 3.09,-0.59 4.23,-1.57l0.27,0.28v0.79l5,4.99L20.49,19l-4.99,-5zM9.5,14C7.01,14 5,11.99 5,9.5S7.01,5 9.5,5 14,7.01 14,9.5 11.99,14 9.5,14z",
     )
 
+    /**
+     * The level browser: a magnifying glass over a list. Distinct from [Search] so the two
+     * adjacent buttons do not look identical.
+     */
+    val Levels = icon(
+        "Levels",
+        "M7,9H2V7h5V9zM7,12H2v2h5V12zM20.59,19l-3.83,-3.83C17.5,14.07 18,12.6 18,11c0,-3.87 -3.13,-7 -7,-7S4,7.13 4,11s3.13,7 7,7c1.6,0 3.07,-0.5 4.17,-1.24L19,20.59 20.59,19zM11,16c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5z",
+    )
+
     /** Graded Reading: an open book. */
     val Reading = icon(
         "Reading",

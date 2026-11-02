@@ -168,7 +168,7 @@ private fun DashboardTopBar(level: Int?, username: String?, a: DashboardActions)
             modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
         )
         IconButton(onClick = a.openSearch) { Icon(AppIcons.Search, "Search") }
-        IconButton(onClick = { a.openLevels(level) }) { Icon(AppIcons.Book, "Levels") }
+        IconButton(onClick = { a.openLevels(level) }) { Icon(AppIcons.Levels, "Levels") }
         a.openReading?.let { open -> IconButton(onClick = open) { Icon(AppIcons.Reading, "Graded reading") } }
         IconButton(onClick = a.openSettings) { Icon(AppIcons.Settings, "Settings") }
     }
