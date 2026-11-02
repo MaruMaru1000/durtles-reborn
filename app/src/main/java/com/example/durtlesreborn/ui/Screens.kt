@@ -23,13 +23,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -269,7 +269,7 @@ private fun QuizScreen(
 
         // Details reveal the answer, so they open only after answering: swipe up, or tap the hint.
         val swipeThreshold = with(LocalDensity.current) { 64.dp.toPx() }
-        Box(
+        BoxWithConstraints(
             Modifier.weight(1f).fillMaxWidth().pointerInput(state.answered) {
                 var travelled = 0f
                 detectVerticalDragGestures(
@@ -279,6 +279,10 @@ private fun QuizScreen(
                 )
             },
         ) {
+            // With the keyboard up and the feedback panel shown, the question area is short. Scale
+            // the item down so the reading and the two chips always fit instead of sliding under
+            // the reveal button.
+            val compact = maxHeight < 360.dp
             Column(
                 Modifier.align(Alignment.Center).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -298,7 +302,7 @@ private fun QuizScreen(
                 if (confirmation != null) {
                     Text(
                         text = confirmation,
-                        fontSize = 22.sp,
+                        fontSize = if (compact) 17.sp else 22.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
@@ -309,7 +313,11 @@ private fun QuizScreen(
                 }
                 Text(
                     text = card.characters,
-                    fontSize = if (card.characters.length > 3) 56.sp else 96.sp,
+                    fontSize = when {
+                        card.characters.length > 3 -> if (compact) 34.sp else 56.sp
+                        compact -> 60.sp
+                        else -> 96.sp
+                    },
                     color = kindColor(card.kind),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.clickable(enabled = playable) { onPlayAudio(card.itemId) },
@@ -319,18 +327,19 @@ private fun QuizScreen(
                 // Two chips spell out the question: the subject on the left in its own colour, and
                 // what has to be typed on the right, so a reading is never confused with a meaning.
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    QuizChip(subjectLabel(card.kind), subjectColor, contentColorOn(subjectColor))
-                    QuizChip(answerLabel(card.kind), answerColors.background, answerColors.content)
+                    QuizChip(subjectLabel(card.kind), subjectColor, contentColorOn(subjectColor), compact)
+                    QuizChip(answerLabel(card.kind), answerColors.background, answerColors.content, compact)
                 }
             }
             // Toast-like bubble above the characters: fades in when an answer completes a review
-            // item, then leaves on its own, so it never covers the item or the next question.
+            // item, then leaves on its own. It is anchored to the top of the question area rather
+            // than offset from the centre, so it stays on screen when the keyboard shrinks it.
             StageBubbleToast(
                 move = stageBubble,
-                modifier = Modifier.align(Alignment.Center).offset(y = (-146).dp),
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
             )
         }
         if (state.answered) {
@@ -535,13 +544,18 @@ private fun answerLabel(kind: QuestionKind) = if (kind.reading) "Reading" else "
 
 /** A small rounded label used under the item to say what kind of question this is. */
 @Composable
-private fun QuizChip(text: String, background: androidx.compose.ui.graphics.Color, content: androidx.compose.ui.graphics.Color) {
+private fun QuizChip(
+    text: String,
+    background: androidx.compose.ui.graphics.Color,
+    content: androidx.compose.ui.graphics.Color,
+    compact: Boolean,
+) {
     Surface(shape = RoundedCornerShape(50), color = background, contentColor = content) {
         Text(
             text,
-            style = MaterialTheme.typography.labelLarge,
+            style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = if (compact) 9.dp else 12.dp, vertical = if (compact) 2.dp else 4.dp),
         )
     }
 }
