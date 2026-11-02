@@ -1,6 +1,7 @@
 package com.example.durtlesreborn.reading.ui
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.example.durtlesreborn.reading.core.ArticleScore
@@ -174,6 +175,7 @@ class ReadingController(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                Log.e(TAG, "Refresh failed", e)
                 _library.value = _library.value.copy(loading = false, message = "Could not fetch articles.")
             }
         }
@@ -190,18 +192,42 @@ class ReadingController(
         if (assignments.isEmpty()) assignments = wanikani.assignments().first()
         var added = 0
         for (source in store.sources()) {
-            val links = fetcher.links(toSource(source))
-            for (link in links) {
-                if (store.articleAt(source.id, link.url) != null) continue
-                val article = fetcher.extract(link.url) ?: continue
-                if (saveArticle(source, link, article.title, article.text)) added++
+            val links = try {
+                fetcher.links(toSource(source))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Could not list ${source.name} (${source.url})", e)
+                emptyList()
             }
+            Log.i(TAG, "${source.name}: ${links.size} article links")
+            var addedHere = 0
+            for (link in links) {
+                try {
+                    if (store.articleAt(source.id, link.url) != null) continue
+                    val article = fetcher.extract(link.url)
+                    if (article == null) {
+                        Log.w(TAG, "No Japanese text extracted from ${link.url}")
+                        continue
+                    }
+                    if (saveArticle(source, link, article.title, article.text)) {
+                        added++
+                        addedHere++
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "Could not save ${link.url}", e)
+                }
+            }
+            Log.i(TAG, "${source.name}: added $addedHere")
         }
         store.prune()
         added
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
+        Log.e(TAG, "Refresh failed", e)
         0
     }
 
@@ -280,7 +306,14 @@ class ReadingController(
     }
 
     private suspend fun saveArticle(source: SourceEntity, link: ArticleLink, title: String, text: String): Boolean {
-        val tokens = tokenizer.tokenize(text)
+        val tokens = try {
+            tokenizer.tokenize(text)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Tokenizing failed (${text.length} chars, ${link.url})", e)
+            throw e
+        }
         val matcher = Matcher(subjects, assignments)
         val matches = matcher.match(tokens)
         val tokenized = com.example.durtlesreborn.reading.core.TokenizedArticle(tokens, matches)
@@ -411,6 +444,8 @@ fun subjectTypeLabel(type: SubjectType): String = when (type) {
 
 /** Default source list, exposed for the UI's "add source" helper. */
 val defaultReadingSources: List<ReadingSource> get() = DefaultSources.all
+
+private const val TAG = "GradedReading"
 
 private fun String.isHttpUrl(): Boolean = startsWith("https://") || startsWith("http://")
 

@@ -1,5 +1,6 @@
 package com.example.durtlesreborn.reading.sources
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -56,6 +57,8 @@ class HttpSourceFetcher(
                 SourceKind.RSS -> parseFeed(body, source.url).take(limit)
                 SourceKind.HTML_INDEX -> parseIndex(body, source.url, limit)
             }
+        }.onFailure {
+            Log.e(TAG, "Could not list ${source.name} (${source.kind}) at ${source.url}", it)
         }.getOrDefault(emptyList())
     }
 
@@ -68,7 +71,14 @@ class HttpSourceFetcher(
                 .get()
             val title = doc.selectFirst("h1")?.text()?.takeIf { it.isNotBlank() } ?: doc.title()
             val text = extractText(doc)
-            if (text.count { it.isJapanese() } < 20) null else ExtractedArticle(title, text)
+            if (text.count { it.isJapanese() } < 20) {
+                Log.w(TAG, "Only ${text.count { it.isJapanese() }} Japanese chars at $url")
+                null
+            } else {
+                ExtractedArticle(title, text)
+            }
+        }.onFailure {
+            Log.e(TAG, "Could not extract $url", it)
         }.getOrNull()
     }
 
@@ -151,6 +161,8 @@ internal fun extractText(doc: Document): String {
         .filter { it.isNotBlank() }
     return if (paragraphs.size >= 2) paragraphs.joinToString("\n") else (best ?: doc.body()).text().trim()
 }
+
+private const val TAG = "GradedReading"
 
 private fun Char.isJapanese(): Boolean = this in '\u3040'..'\u30ff' || this in '\u4e00'..'\u9fff'
 
