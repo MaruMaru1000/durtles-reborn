@@ -1,5 +1,9 @@
 package com.example.durtlesreborn.ui
 
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import com.example.durtlesreborn.data.LessonInfo
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.size
@@ -471,6 +475,18 @@ private fun QuizScreen(
             },
             singleLine = true,
             placeholder = { Text(if (card.kanaInput) "答え" else "Meaning") },
+            trailingIcon = if (state.japaneseKeyboardOnReadings) {
+                {
+                    val context = LocalContext.current
+                    IconButton(onClick = {
+                        context.getSystemService(InputMethodManager::class.java)?.showInputMethodPicker()
+                    }) {
+                        Icon(AppIcons.Keyboard, contentDescription = "Switch keyboard")
+                    }
+                }
+            } else {
+                null
+            },
             keyboardOptions = answerKeyboardOptions(card.kanaInput, state.japaneseKeyboardOnReadings),
             keyboardActions = KeyboardActions(onDone = {
                 // Done answers the question. When the keyboard is meant to stay up, it is kept

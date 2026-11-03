@@ -219,7 +219,7 @@ fun SettingsScreen(
         ) { onChange { it.copy(quickAnswerOnWrong = !it.quickAnswerOnWrong) } }
         SwitchRow(
             "Japanese keyboard for reading answers",
-            "Reading questions ask the keyboard for Japanese, so your Japanese layout (such as 12-key flick) appears; meaning questions ask for English. The keyboard must support switching this way. Off: it keeps whatever language it was last on.",
+            "Reading questions ask the keyboard for Japanese, so your Japanese layout (such as 12-key flick) appears; meaning questions ask for English. The keyboard must support switching this way, so a keyboard button on the answer field also opens the system keyboard picker. Off: the keyboard keeps whatever language it was last on.",
             s.japaneseKeyboardOnReadings,
         ) { onChange { it.copy(japaneseKeyboardOnReadings = !it.japaneseKeyboardOnReadings) } }
     }
