@@ -6,7 +6,7 @@ Source of truth for planning: the "Durtles Reborn � Project Outline" artifact 
 
 ## Current state
 
-Package `com.example.durtlesreborn`, minSdk 24, compile/target SDK 37, AGP 9.5.0 (built-in Kotlin plus the Compose compiler plugin, Kotlin 2.4.21), Gradle 9.x, Java 11 with core library desugaring (`java.time` works on API 24). Not a git repo yet. Versions are in `gradle/libs.versions.toml`.
+Package `com.example.durtlesreborn`, minSdk 24, compile/target SDK 37, AGP 9.5.0 (built-in Kotlin plus the Compose compiler plugin, Kotlin 2.4.21), Gradle 9.x, Java 11 with core library desugaring (`java.time` works on API 24). Git repo on `main`, remote `origin` = https://github.com/MaruMaru1000/durtles-reborn. Versions are in `gradle/libs.versions.toml`.
 
 Stack in use: Compose (BOM 2026.09.00) + Material 3, Room 2.8.5 with KSP 2.3.12, WorkManager, DataStore, OkHttp 5, kotlinx.serialization, coroutines; MockWebServer for tests. Commands: `./gradlew testDebugUnitTest`, `./gradlew assembleDebug`. 309 unit tests pass across the app and the five reading modules, including `data/EndToEndTest` (repository -> planner -> quiz -> recorder -> queue -> sync engine -> mock server for a review with a mistake, a lesson, and an offline session; this is the nearest thing to the real write path that does not touch the real account) (DataStore tests use an in-memory store because file-backed DataStore fails to rename files on Windows under JDK 25). The debug APK runs on the `Medium_Phone_API_36.0` emulator with the real token (see "Not done yet" for what has and has not been exercised).
 
@@ -137,5 +137,5 @@ Six phases, each ending at a gate; no dates until Phase 0 sizes the parity list.
 - Match surrounding code style; keep comments sparse.
 - After modifying code, run `graphify update .` if `graphify-out/` exists. Before the first grep or source read on a codebase question, run `graphify query "<question>"` when `graphify-out/graph.json` exists.
 - Build with `./gradlew assembleDebug`; unit tests with `./gradlew test`.
-- This directory is not a git repo; do not commit until the user runs `git init` or asks for it.
+- Commit work on `main` when a task is finished (one focused commit per feature), and push to `origin` unless the user asks to hold it back. Commit messages in the existing style: short imperative summaries.
 - Verifying on a device: if the screen is off, dozing or locked (a screenshot comes back black, or `mDreamingLockscreen=true`), stop and ask the user to unlock it � say which screen to open or where to scroll � and wait. Never call a black screenshot a verification, and never skip the check silently. Ask only when a visual check is actually needed.
