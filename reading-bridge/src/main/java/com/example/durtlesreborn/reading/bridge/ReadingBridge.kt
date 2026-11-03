@@ -94,6 +94,8 @@ class ReadingFeature internal constructor(
     private val emptyLibrary = MutableStateFlow(LibraryState())
     private val _route = MutableStateFlow<ReadingRoute?>(null)
     private var navigator: ReadingNavigator? = null
+    /** True when the library sits under the current article; false when an item page opened it directly. */
+    private var libraryIsRoot = false
 
     val route: StateFlow<ReadingRoute?> = _route.asStateFlow()
     internal val library: StateFlow<LibraryState> get() = controller?.library ?: emptyLibrary.asStateFlow()
@@ -102,6 +104,7 @@ class ReadingFeature internal constructor(
         override fun openLibrary(navigator: ReadingNavigator) {
             if (!enabled) return
             this@ReadingFeature.navigator = navigator
+            libraryIsRoot = true
             controller?.refreshLibrary()
             _route.value = ReadingRoute.Library
         }
@@ -109,6 +112,7 @@ class ReadingFeature internal constructor(
         override fun openArticle(articleId: Long, navigator: ReadingNavigator) {
             if (!enabled) return
             this@ReadingFeature.navigator = navigator
+            libraryIsRoot = false
             _route.value = ReadingRoute.Article(articleId)
         }
     }
@@ -122,6 +126,18 @@ class ReadingFeature internal constructor(
         _route.value = ReadingRoute.Library
     }
 
+    /** One step back: an article returns to the library when it was opened there, otherwise the
+     *  feature closes back to the page that opened it (the item page for "Seen in your reading").
+     *  Back from the library always closes the feature. */
+    fun back() {
+        when (_route.value) {
+            is ReadingRoute.Article ->
+                if (libraryIsRoot) _route.value = ReadingRoute.Library else closeReading()
+            ReadingRoute.Library -> closeReading()
+            null -> Unit
+        }
+    }
+
     /** Opens an article from inside the library, reusing the navigator the app supplied. */
     internal fun openArticleFromLibrary(articleId: Long) {
         if (navigator == null) return
@@ -131,6 +147,7 @@ class ReadingFeature internal constructor(
     fun closeReading() {
         navigator?.closeReading()
         navigator = null
+        libraryIsRoot = false
         _route.value = null
     }
 
@@ -141,6 +158,7 @@ class ReadingFeature internal constructor(
     fun close() {
         controller?.close()
         navigator = null
+        libraryIsRoot = false
         _route.value = null
         if (ReadingRuntime.current === this) ReadingRuntime.current = null
     }
@@ -333,7 +351,7 @@ private fun ArticleRoute(feature: ReadingFeature, id: Long) {
         ReadingArticleScreen(
             data = reader,
             palette = feature.palette,
-            onBack = feature::backToLibrary,
+            onBack = feature::back,
             onOpenItem = feature::openItem,
             onOpenWeb = { web = true },
         )

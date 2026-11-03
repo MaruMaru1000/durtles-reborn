@@ -159,7 +159,7 @@ fun AppRoot(viewModel: MainViewModel) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.safeDrawingPadding()) {
             if (readingRoute != null) {
-                BackHandler { feature.closeReading() }
+                BackHandler { feature.back() }
                 ReadingRouteHost(feature)
             } else {
             when (val s = state) {

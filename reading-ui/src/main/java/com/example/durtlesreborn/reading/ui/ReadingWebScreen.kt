@@ -59,7 +59,11 @@ fun ReadingWebScreen(
     val lineWidth = controller.webLineWidth
     val latest = rememberUpdatedState(fontZoom to lineWidth)
 
-    BackHandler(enabled = showSettings) { showSettings = false }
+    BackHandler {
+        // Back closes the text settings first, then returns to the native reader; the library is
+        // one step further back.
+        if (showSettings) showSettings = false else onBack()
+    }
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
