@@ -217,6 +217,11 @@ fun SettingsScreen(
             "On: the accepted answer appears above the item by itself after a wrong answer, for a quick check. Off: it stays hidden until you tap the red banner. Either way, a further tap opens the full item details.",
             s.quickAnswerOnWrong,
         ) { onChange { it.copy(quickAnswerOnWrong = !it.quickAnswerOnWrong) } }
+        SwitchRow(
+            "Japanese keyboard for reading answers",
+            "Reading questions ask the keyboard for Japanese, so your Japanese layout (such as 12-key flick) appears; meaning questions ask for English. The keyboard must support switching this way. Off: it keeps whatever language it was last on.",
+            s.japaneseKeyboardOnReadings,
+        ) { onChange { it.copy(japaneseKeyboardOnReadings = !it.japaneseKeyboardOnReadings) } }
     }
 }
 

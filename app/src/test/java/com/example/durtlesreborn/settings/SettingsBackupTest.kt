@@ -16,6 +16,7 @@ class SettingsBackupTest {
         requireOnYomiInKatakana = true,
         showAnswerOnWrong = true,
         quickAnswerOnWrong = false,
+        japaneseKeyboardOnReadings = true,
         enableBackgroundSync = true,
         syncOnOpen = true,
         maxReviewSessionSize = 40,

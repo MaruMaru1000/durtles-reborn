@@ -28,11 +28,17 @@ data class AppSettings(
      */
     val showAnswerOnWrong: Boolean = false,
     /**
-     * On a wrong answer, the first tap on the banner shows the accepted answer above the item for a
-     * quick check; a second tap opens the full details. Off skips the quick answer and a tap opens
-     * the full details at once.
+     * On a wrong answer, reveal the accepted answer above the item by itself. Off keeps it hidden
+     * until the banner is tapped; either way the first tap shows the answer and the second opens the
+     * full details.
      */
     val quickAnswerOnWrong: Boolean = true,
+    /**
+     * Ask the keyboard for Japanese on reading questions and for English on meaning questions, so a
+     * Japanese layout such as 12-key flick appears without switching by hand. The IME decides whether
+     * to honour the hint. Off keeps whatever language the keyboard was last on.
+     */
+    val japaneseKeyboardOnReadings: Boolean = false,
     /**
      * Keep the answer field focused and the keyboard up while the answer is shown, so the next
      * answer needs no extra tap. Off collapses the keyboard after every answer.
@@ -90,6 +96,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         val onYomiKatakana = booleanPreferencesKey("require_onyomi_in_katakana")
         val showAnswerOnWrong = booleanPreferencesKey("show_answer_on_wrong")
         val quickAnswerOnWrong = booleanPreferencesKey("quick_answer_on_wrong")
+        val japaneseKeyboardOnReadings = booleanPreferencesKey("japanese_keyboard_on_readings")
         val keepKeyboardOpen = booleanPreferencesKey("keep_keyboard_open")
         val backgroundSync = booleanPreferencesKey("enable_background_sync")
         val syncOnOpen = booleanPreferencesKey("sync_on_open")
@@ -123,6 +130,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
             requireOnYomiInKatakana = p[Keys.onYomiKatakana] ?: d.requireOnYomiInKatakana,
             showAnswerOnWrong = p[Keys.showAnswerOnWrong] ?: d.showAnswerOnWrong,
             quickAnswerOnWrong = p[Keys.quickAnswerOnWrong] ?: d.quickAnswerOnWrong,
+            japaneseKeyboardOnReadings = p[Keys.japaneseKeyboardOnReadings] ?: d.japaneseKeyboardOnReadings,
             keepKeyboardOpen = p[Keys.keepKeyboardOpen] ?: d.keepKeyboardOpen,
             enableBackgroundSync = p[Keys.backgroundSync] ?: d.enableBackgroundSync,
             syncOnOpen = p[Keys.syncOnOpen] ?: d.syncOnOpen,
@@ -161,6 +169,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
             p[Keys.onYomiKatakana] = next.requireOnYomiInKatakana
             p[Keys.showAnswerOnWrong] = next.showAnswerOnWrong
             p[Keys.quickAnswerOnWrong] = next.quickAnswerOnWrong
+            p[Keys.japaneseKeyboardOnReadings] = next.japaneseKeyboardOnReadings
             p[Keys.keepKeyboardOpen] = next.keepKeyboardOpen
             p[Keys.backgroundSync] = next.enableBackgroundSync
             p[Keys.syncOnOpen] = next.syncOnOpen

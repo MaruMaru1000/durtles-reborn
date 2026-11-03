@@ -69,9 +69,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -307,8 +310,18 @@ private fun QuizScreen(
     var field by remember(card.itemId, card.kind) { mutableStateOf(TextFieldValue("")) }
     if (field.text != state.input) field = TextFieldValue(state.input, TextRange(state.input.length))
     // With the setting on, the field is focused for every question so typing can start at once.
-    LaunchedEffect(card.itemId, card.kind, keepKeyboard) {
-        if (keepKeyboard) runCatching { focus.requestFocus() }
+    // When the language hint changes (reading <-> meaning), the input session is restarted so the
+    // keyboard reads the new hint; focusing an already focused field would not re-send it.
+    var lastJapaneseHint by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(card.itemId, card.kind, keepKeyboard, state.japaneseKeyboardOnReadings) {
+        val japaneseHint = state.japaneseKeyboardOnReadings && card.kanaInput
+        if (keepKeyboard) {
+            if (state.japaneseKeyboardOnReadings && lastJapaneseHint != null && lastJapaneseHint != japaneseHint) {
+                runCatching { focusManager.clearFocus() }
+            }
+            runCatching { focus.requestFocus() }
+        }
+        lastJapaneseHint = japaneseHint
     }
     // Answering either keeps the keyboard up (the field stays focused, so the next answer needs no
     // extra tap) or collapses it, from the `keep_keyboard_open` setting.
@@ -458,7 +471,7 @@ private fun QuizScreen(
             },
             singleLine = true,
             placeholder = { Text(if (card.kanaInput) "答え" else "Meaning") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardOptions = answerKeyboardOptions(card.kanaInput, state.japaneseKeyboardOnReadings),
             keyboardActions = KeyboardActions(onDone = {
                 // Done answers the question. When the keyboard is meant to stay up, it is kept
                 // across the answer so the next one needs no extra tap.
@@ -620,6 +633,22 @@ private fun FeedbackPanel(
             Button(onClick = onNext, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Next") }
         }
     }
+}
+
+/**
+ * The keyboard for the answer field. With the hint setting on, reading questions ask the IME for
+ * Japanese (so the user's Japanese layout, such as 12-key flick, comes up) and meaning questions ask
+ * for English. The IME decides whether to honour the hint. Off keeps the current keyboard language.
+ */
+private fun answerKeyboardOptions(reading: Boolean, hintJapanese: Boolean): KeyboardOptions = when {
+    !hintJapanese -> KeyboardOptions(imeAction = ImeAction.Done)
+    reading -> KeyboardOptions(
+        hintLocales = LocaleList(Locale("ja")),
+        autoCorrectEnabled = false,
+        capitalization = KeyboardCapitalization.None,
+        imeAction = ImeAction.Done,
+    )
+    else -> KeyboardOptions(hintLocales = LocaleList(Locale("en")), imeAction = ImeAction.Done)
 }
 
 private fun acceptedAnswers(card: QuizCard): String {

@@ -98,6 +98,8 @@ sealed interface UiState {
         val showAnswerOnWrong: Boolean = false,
         /** Reveal the accepted answer above the item by itself on a wrong answer, from `quick_answer_on_wrong`. */
         val quickAnswerOnWrong: Boolean = true,
+        /** Ask the keyboard for Japanese on reading questions, from `japanese_keyboard_on_readings`. */
+        val japaneseKeyboardOnReadings: Boolean = false,
         /** Keep the field focused and the keyboard up while the answer is shown, from `keep_keyboard_open`. */
         val keepKeyboardOpen: Boolean = true,
         /** Set when this answer completed a review item: the stage it moved from and to. */
@@ -162,6 +164,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
     private var sessionDryRun = false
     private var sessionShowAnswerOnWrong = false
     private var sessionQuickAnswerOnWrong = true
+    private var sessionJapaneseKeyboardOnReadings = false
     private var sessionKeepKeyboardOpen = true
     private var audioJob: Job? = null
 
@@ -734,6 +737,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         sessionDryRun = settings.dryRun
         sessionShowAnswerOnWrong = settings.showAnswerOnWrong
         sessionQuickAnswerOnWrong = settings.quickAnswerOnWrong
+        sessionJapaneseKeyboardOnReadings = settings.japaneseKeyboardOnReadings
         sessionKeepKeyboardOpen = settings.keepKeyboardOpen
         persist()
         if (quiz?.inPresentation == true) showLessonCard() else showNextCard()
@@ -782,6 +786,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
             canUndo = controller.canUndo,
             showAnswerOnWrong = sessionShowAnswerOnWrong,
             quickAnswerOnWrong = sessionQuickAnswerOnWrong,
+            japaneseKeyboardOnReadings = sessionJapaneseKeyboardOnReadings,
             keepKeyboardOpen = sessionKeepKeyboardOpen,
         )
     }

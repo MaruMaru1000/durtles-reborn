@@ -26,6 +26,7 @@ class SettingsStoreTest {
         assertFalse(s.requireOnYomiInKatakana)
         assertFalse(s.showAnswerOnWrong)
         assertTrue(s.quickAnswerOnWrong)
+        assertFalse(s.japaneseKeyboardOnReadings)
         assertFalse(s.textStageLabels)
         assertFalse(s.reviewBackToBack)
         assertFalse(s.reviewReadingFirst)
@@ -38,7 +39,7 @@ class SettingsStoreTest {
     @Test
     fun changesArePersisted() = runBlocking {
         val store = SettingsStore(dataStore())
-        store.update { it.copy(closeEnoughAction = CloseEnoughAction.REJECT, maxReviewSessionSize = 25, reviewOrder = "LEVEL_THEN_TYPE", reviewOrderPriority = "RADICALS_FIRST", showAnswerOnWrong = true, textStageLabels = true, reviewBackToBack = true, reviewMeaningFirst = true) }
+        store.update { it.copy(closeEnoughAction = CloseEnoughAction.REJECT, maxReviewSessionSize = 25, reviewOrder = "LEVEL_THEN_TYPE", reviewOrderPriority = "RADICALS_FIRST", showAnswerOnWrong = true, textStageLabels = true, reviewBackToBack = true, reviewMeaningFirst = true, japaneseKeyboardOnReadings = true) }
         val s = store.current()
         assertEquals(CloseEnoughAction.REJECT, s.closeEnoughAction)
         assertEquals(25, s.maxReviewSessionSize)
@@ -46,6 +47,7 @@ class SettingsStoreTest {
         assertTrue(s.textStageLabels)
         assertTrue(s.reviewBackToBack)
         assertTrue(s.reviewMeaningFirst)
+        assertTrue(s.japaneseKeyboardOnReadings)
         assertEquals(listOf(SortKey.LEVEL, SortKey.TYPE), s.subjectOrder.keys)
         assertEquals(SessionPriority.RadicalsFirst, s.priority)
     }
