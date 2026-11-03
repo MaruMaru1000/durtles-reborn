@@ -96,7 +96,7 @@ sealed interface UiState {
         val canUndo: Boolean = false,
         /** Reveal the accepted answer on a wrong answer, from the `show_answer_on_wrong` setting. */
         val showAnswerOnWrong: Boolean = false,
-        /** Show the quick answer above the item before the full details, from `quick_answer_on_wrong`. */
+        /** Reveal the accepted answer above the item by itself on a wrong answer, from `quick_answer_on_wrong`. */
         val quickAnswerOnWrong: Boolean = true,
         /** Keep the field focused and the keyboard up while the answer is shown, from `keep_keyboard_open`. */
         val keepKeyboardOpen: Boolean = true,

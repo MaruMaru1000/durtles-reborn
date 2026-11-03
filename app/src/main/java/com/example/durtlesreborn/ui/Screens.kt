@@ -272,9 +272,17 @@ private fun QuizScreen(
     val card = state.card
     var showDetails by rememberSaveable(card.itemId, card.kind) { mutableStateOf(false) }
     // Tapping the wrong-answer banner reveals the accepted answer above the characters instead of
-    // opening the full details; undo and a new question hide it again.
+    // opening the full details; undo and a new question hide it again. With `quick_answer_on_wrong`
+    // on, a wrong answer reveals it by itself; tapping the banner still works either way.
     var revealed by rememberSaveable(card.itemId, card.kind) { mutableStateOf(false) }
-    LaunchedEffect(state.answered) { if (!state.answered) revealed = false }
+    val wrong = state.answered && state.feedback?.correct == false
+    LaunchedEffect(state.answered, state.feedback?.correct, state.quickAnswerOnWrong, state.showAnswerOnWrong) {
+        if (!state.answered) {
+            revealed = false
+        } else if (autoRevealQuickAnswer(state.feedback?.correct, state.quickAnswerOnWrong, state.showAnswerOnWrong)) {
+            revealed = true
+        }
+    }
     val progress = state.progress
     val focus = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -408,7 +416,6 @@ private fun QuizScreen(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
             )
         }
-        val wrong = state.answered && state.feedback?.correct == false
         if (state.answered) {
             // The swipe-up gesture over the question still opens the details; the button is the
             // visible way in, replacing the old drag handle and "Swipe up for details" hint. It
@@ -422,7 +429,7 @@ private fun QuizScreen(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
                 Text(
-                    if (wrong && (revealed || state.showAnswerOnWrong || !state.quickAnswerOnWrong)) {
+                    if (wrong && (revealed || state.showAnswerOnWrong)) {
                         "Tap for the full item details"
                     } else {
                         "Tap to reveal answer"
@@ -481,7 +488,7 @@ private fun QuizScreen(
             onSubmit,
             revealed = revealed,
             onBannerTap = { correct ->
-                when (bannerTap(correct, revealed, state.showAnswerOnWrong, state.quickAnswerOnWrong)) {
+                when (bannerTap(correct, revealed, state.showAnswerOnWrong)) {
                     BannerTap.REVEAL -> revealed = true
                     BannerTap.DETAILS -> showDetails = true
                 }
@@ -551,7 +558,7 @@ private fun FeedbackPanel(
                 // answer above the characters; on a correct one it still opens the details sheet.
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
                     .clickable(
-                        onClickLabel = if (correct || revealed || !state.quickAnswerOnWrong) {
+                        onClickLabel = if (correct || revealed || state.showAnswerOnWrong) {
                             "Show the full details"
                         } else {
                             "Reveal the answer"
@@ -603,11 +610,7 @@ private fun FeedbackPanel(
                         )
                     } else {
                         Text(
-                            if (state.quickAnswerOnWrong) {
-                                "The answer is hidden. Tap this banner to reveal it above the item."
-                            } else {
-                                "The answer is hidden. Tap this banner to open the full item details."
-                            },
+                            "The answer is hidden. Tap this banner to reveal it above the item.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = content.copy(alpha = 0.8f),
                         )

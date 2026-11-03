@@ -1,7 +1,9 @@
 package com.example.durtlesreborn.ui
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AnswerRevealTest {
@@ -52,7 +54,28 @@ class AnswerRevealTest {
     }
 
     @Test
-    fun withTheQuickAnswerOffTheFirstTapOpensTheDetails() {
-        assertEquals(BannerTap.DETAILS, bannerTap(correct = false, revealed = false, quickAnswer = false))
+    fun aWrongAnswerAutoRevealsTheQuickAnswerWhenEnabled() {
+        assertTrue(autoRevealQuickAnswer(correct = false, quickAnswer = true, answerShown = false))
+    }
+
+    @Test
+    fun theQuickAnswerWaitsForATapWhenDisabled() {
+        assertFalse(autoRevealQuickAnswer(correct = false, quickAnswer = false, answerShown = false))
+    }
+
+    @Test
+    fun aCorrectAnswerNeverAutoRevealsTheQuickAnswer() {
+        assertFalse(autoRevealQuickAnswer(correct = true, quickAnswer = true, answerShown = false))
+    }
+
+    @Test
+    fun anAnswerAlreadyShownInTheBannerIsNotRevealedAgain() {
+        assertFalse(autoRevealQuickAnswer(correct = false, quickAnswer = true, answerShown = true))
+    }
+
+    @Test
+    fun aWrongTapStillRevealsTheAnswerWhenTheQuickAnswerIsOff() {
+        // The setting only turns off the automatic reveal; the first tap always shows the answer.
+        assertEquals(BannerTap.REVEAL, bannerTap(correct = false, revealed = false, answerShown = false))
     }
 }

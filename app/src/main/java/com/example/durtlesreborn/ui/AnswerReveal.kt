@@ -14,12 +14,15 @@ internal enum class BannerTap { REVEAL, DETAILS }
 /**
  * On a correct answer the banner opens the full details at once. On a wrong one the first tap only
  * reveals the accepted answer above the item, so the answer is not given away by a stray tap; once
- * it is revealed, another tap opens the full item details.
+ * it is revealed, another tap opens the full item details. The quick answer setting never changes
+ * this: turning the automatic reveal off leaves the answer one tap away.
  */
-internal fun bannerTap(
-    correct: Boolean,
-    revealed: Boolean,
-    answerShown: Boolean = false,
-    quickAnswer: Boolean = true,
-): BannerTap =
-    if (correct || revealed || answerShown || !quickAnswer) BannerTap.DETAILS else BannerTap.REVEAL
+internal fun bannerTap(correct: Boolean, revealed: Boolean, answerShown: Boolean = false): BannerTap =
+    if (correct || revealed || answerShown) BannerTap.DETAILS else BannerTap.REVEAL
+
+/**
+ * Whether a wrong answer shows the accepted answer above the item by itself (`quick_answer_on_wrong`).
+ * Turning it off only removes the automatic reveal; tapping the banner still shows the answer.
+ */
+internal fun autoRevealQuickAnswer(correct: Boolean?, quickAnswer: Boolean, answerShown: Boolean): Boolean =
+    correct == false && quickAnswer && !answerShown
