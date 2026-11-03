@@ -15,6 +15,7 @@ class SettingsBackupTest {
         closeEnoughAction = CloseEnoughAction.REJECT,
         requireOnYomiInKatakana = true,
         showAnswerOnWrong = true,
+        quickAnswerOnWrong = false,
         enableBackgroundSync = true,
         syncOnOpen = true,
         maxReviewSessionSize = 40,

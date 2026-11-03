@@ -16,5 +16,10 @@ internal enum class BannerTap { REVEAL, DETAILS }
  * reveals the accepted answer above the item, so the answer is not given away by a stray tap; once
  * it is revealed, another tap opens the full item details.
  */
-internal fun bannerTap(correct: Boolean, revealed: Boolean, answerShown: Boolean = false): BannerTap =
-    if (correct || revealed || answerShown) BannerTap.DETAILS else BannerTap.REVEAL
+internal fun bannerTap(
+    correct: Boolean,
+    revealed: Boolean,
+    answerShown: Boolean = false,
+    quickAnswer: Boolean = true,
+): BannerTap =
+    if (correct || revealed || answerShown || !quickAnswer) BannerTap.DETAILS else BannerTap.REVEAL

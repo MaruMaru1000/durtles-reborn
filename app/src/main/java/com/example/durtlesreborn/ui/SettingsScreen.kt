@@ -212,6 +212,11 @@ fun SettingsScreen(
             "Off: the answer stays hidden. Swipe up on the question for the full details.",
             s.showAnswerOnWrong,
         ) { onChange { it.copy(showAnswerOnWrong = !it.showAnswerOnWrong) } }
+        SwitchRow(
+            "Quick answer on a wrong answer",
+            "On: the first tap on the red banner shows the accepted answer above the item, and a second tap opens the full details. Off: a tap opens the full details straight away.",
+            s.quickAnswerOnWrong,
+        ) { onChange { it.copy(quickAnswerOnWrong = !it.quickAnswerOnWrong) } }
     }
 }
 

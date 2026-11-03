@@ -422,7 +422,7 @@ private fun QuizScreen(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
                 Text(
-                    if (wrong && (revealed || state.showAnswerOnWrong)) {
+                    if (wrong && (revealed || state.showAnswerOnWrong || !state.quickAnswerOnWrong)) {
                         "Tap for the full item details"
                     } else {
                         "Tap to reveal answer"
@@ -481,7 +481,7 @@ private fun QuizScreen(
             onSubmit,
             revealed = revealed,
             onBannerTap = { correct ->
-                when (bannerTap(correct, revealed, state.showAnswerOnWrong)) {
+                when (bannerTap(correct, revealed, state.showAnswerOnWrong, state.quickAnswerOnWrong)) {
                     BannerTap.REVEAL -> revealed = true
                     BannerTap.DETAILS -> showDetails = true
                 }
@@ -551,7 +551,11 @@ private fun FeedbackPanel(
                 // answer above the characters; on a correct one it still opens the details sheet.
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
                     .clickable(
-                        onClickLabel = if (correct || revealed) "Show the full details" else "Reveal the answer",
+                        onClickLabel = if (correct || revealed || !state.quickAnswerOnWrong) {
+                            "Show the full details"
+                        } else {
+                            "Reveal the answer"
+                        },
                         role = Role.Button,
                     ) { onBannerTap(correct) },
                 shape = RoundedCornerShape(16.dp),
@@ -599,7 +603,11 @@ private fun FeedbackPanel(
                         )
                     } else {
                         Text(
-                            "The answer is hidden. Tap this banner to reveal it above the item.",
+                            if (state.quickAnswerOnWrong) {
+                                "The answer is hidden. Tap this banner to reveal it above the item."
+                            } else {
+                                "The answer is hidden. Tap this banner to open the full item details."
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = content.copy(alpha = 0.8f),
                         )

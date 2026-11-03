@@ -28,6 +28,12 @@ data class AppSettings(
      */
     val showAnswerOnWrong: Boolean = false,
     /**
+     * On a wrong answer, the first tap on the banner shows the accepted answer above the item for a
+     * quick check; a second tap opens the full details. Off skips the quick answer and a tap opens
+     * the full details at once.
+     */
+    val quickAnswerOnWrong: Boolean = true,
+    /**
      * Keep the answer field focused and the keyboard up while the answer is shown, so the next
      * answer needs no extra tap. Off collapses the keyboard after every answer.
      */
@@ -83,6 +89,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         val closeEnough = stringPreferencesKey("close_enough_action")
         val onYomiKatakana = booleanPreferencesKey("require_onyomi_in_katakana")
         val showAnswerOnWrong = booleanPreferencesKey("show_answer_on_wrong")
+        val quickAnswerOnWrong = booleanPreferencesKey("quick_answer_on_wrong")
         val keepKeyboardOpen = booleanPreferencesKey("keep_keyboard_open")
         val backgroundSync = booleanPreferencesKey("enable_background_sync")
         val syncOnOpen = booleanPreferencesKey("sync_on_open")
@@ -115,6 +122,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
                 ?: d.closeEnoughAction,
             requireOnYomiInKatakana = p[Keys.onYomiKatakana] ?: d.requireOnYomiInKatakana,
             showAnswerOnWrong = p[Keys.showAnswerOnWrong] ?: d.showAnswerOnWrong,
+            quickAnswerOnWrong = p[Keys.quickAnswerOnWrong] ?: d.quickAnswerOnWrong,
             keepKeyboardOpen = p[Keys.keepKeyboardOpen] ?: d.keepKeyboardOpen,
             enableBackgroundSync = p[Keys.backgroundSync] ?: d.enableBackgroundSync,
             syncOnOpen = p[Keys.syncOnOpen] ?: d.syncOnOpen,
@@ -152,6 +160,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
             p[Keys.closeEnough] = next.closeEnoughAction.name
             p[Keys.onYomiKatakana] = next.requireOnYomiInKatakana
             p[Keys.showAnswerOnWrong] = next.showAnswerOnWrong
+            p[Keys.quickAnswerOnWrong] = next.quickAnswerOnWrong
             p[Keys.keepKeyboardOpen] = next.keepKeyboardOpen
             p[Keys.backgroundSync] = next.enableBackgroundSync
             p[Keys.syncOnOpen] = next.syncOnOpen

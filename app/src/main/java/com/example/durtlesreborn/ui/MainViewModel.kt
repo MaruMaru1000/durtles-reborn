@@ -96,6 +96,8 @@ sealed interface UiState {
         val canUndo: Boolean = false,
         /** Reveal the accepted answer on a wrong answer, from the `show_answer_on_wrong` setting. */
         val showAnswerOnWrong: Boolean = false,
+        /** Show the quick answer above the item before the full details, from `quick_answer_on_wrong`. */
+        val quickAnswerOnWrong: Boolean = true,
         /** Keep the field focused and the keyboard up while the answer is shown, from `keep_keyboard_open`. */
         val keepKeyboardOpen: Boolean = true,
         /** Set when this answer completed a review item: the stage it moved from and to. */
@@ -159,6 +161,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
     private var sessionType = SessionType.REVIEW
     private var sessionDryRun = false
     private var sessionShowAnswerOnWrong = false
+    private var sessionQuickAnswerOnWrong = true
     private var sessionKeepKeyboardOpen = true
     private var audioJob: Job? = null
 
@@ -730,6 +733,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         sessionType = type
         sessionDryRun = settings.dryRun
         sessionShowAnswerOnWrong = settings.showAnswerOnWrong
+        sessionQuickAnswerOnWrong = settings.quickAnswerOnWrong
         sessionKeepKeyboardOpen = settings.keepKeyboardOpen
         persist()
         if (quiz?.inPresentation == true) showLessonCard() else showNextCard()
@@ -777,6 +781,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
             progress = controller.progress,
             canUndo = controller.canUndo,
             showAnswerOnWrong = sessionShowAnswerOnWrong,
+            quickAnswerOnWrong = sessionQuickAnswerOnWrong,
             keepKeyboardOpen = sessionKeepKeyboardOpen,
         )
     }

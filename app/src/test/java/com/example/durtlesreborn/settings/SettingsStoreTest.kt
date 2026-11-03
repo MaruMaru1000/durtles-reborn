@@ -25,6 +25,7 @@ class SettingsStoreTest {
         assertFalse(s.dryRun)
         assertFalse(s.requireOnYomiInKatakana)
         assertFalse(s.showAnswerOnWrong)
+        assertTrue(s.quickAnswerOnWrong)
         assertFalse(s.textStageLabels)
         assertFalse(s.reviewBackToBack)
         assertFalse(s.reviewReadingFirst)

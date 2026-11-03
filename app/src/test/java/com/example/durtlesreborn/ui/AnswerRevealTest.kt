@@ -50,4 +50,9 @@ class AnswerRevealTest {
     fun aWrongAnswerAlreadyShownInTheBannerOpensTheDetails() {
         assertEquals(BannerTap.DETAILS, bannerTap(correct = false, revealed = false, answerShown = true))
     }
+
+    @Test
+    fun withTheQuickAnswerOffTheFirstTapOpensTheDetails() {
+        assertEquals(BannerTap.DETAILS, bannerTap(correct = false, revealed = false, quickAnswer = false))
+    }
 }
