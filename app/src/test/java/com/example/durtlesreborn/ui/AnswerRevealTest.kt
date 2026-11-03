@@ -30,4 +30,24 @@ class AnswerRevealTest {
     fun anItemWithoutAReadingShowsNothing() {
         assertNull(confirmationReading(answered = true, correct = true, reading = null))
     }
+
+    @Test
+    fun aCorrectAnswerOpensTheDetails() {
+        assertEquals(BannerTap.DETAILS, bannerTap(correct = true, revealed = false))
+    }
+
+    @Test
+    fun theFirstWrongTapRevealsTheAnswer() {
+        assertEquals(BannerTap.REVEAL, bannerTap(correct = false, revealed = false))
+    }
+
+    @Test
+    fun aSecondWrongTapOpensTheDetails() {
+        assertEquals(BannerTap.DETAILS, bannerTap(correct = false, revealed = true))
+    }
+
+    @Test
+    fun aWrongAnswerAlreadyShownInTheBannerOpensTheDetails() {
+        assertEquals(BannerTap.DETAILS, bannerTap(correct = false, revealed = false, answerShown = true))
+    }
 }

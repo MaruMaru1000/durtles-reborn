@@ -408,10 +408,12 @@ private fun QuizScreen(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
             )
         }
+        val wrong = state.answered && state.feedback?.correct == false
         if (state.answered) {
             // The swipe-up gesture over the question still opens the details; the button is the
             // visible way in, replacing the old drag handle and "Swipe up for details" hint. It
-            // spans the screen and is thin so it reads as a control at a glance.
+            // spans the screen and is thin so it reads as a control at a glance. Once a wrong
+            // answer has been revealed, its label points at the full details instead.
             OutlinedButton(
                 onClick = { showDetails = true },
                 modifier = Modifier.fillMaxWidth().height(40.dp)
@@ -419,11 +421,16 @@ private fun QuizScreen(
                 contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
-                Text("Tap to reveal answer", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    if (wrong && (revealed || state.showAnswerOnWrong)) {
+                        "Tap for the full item details"
+                    } else {
+                        "Tap to reveal answer"
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
         }
-
-        val wrong = state.answered && state.feedback?.correct == false
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             QuizAction("Undo", state.canUndo, onUndo, Modifier.weight(1f))
             QuizAction("Skip", !state.answered, onSkip, Modifier.weight(1f))
@@ -472,7 +479,13 @@ private fun QuizScreen(
         FeedbackPanel(
             state,
             onSubmit,
-            onBannerTap = { correct -> if (correct) showDetails = true else revealed = true },
+            revealed = revealed,
+            onBannerTap = { correct ->
+                when (bannerTap(correct, revealed, state.showAnswerOnWrong)) {
+                    BannerTap.REVEAL -> revealed = true
+                    BannerTap.DETAILS -> showDetails = true
+                }
+            },
         )
     }
 
@@ -514,7 +527,12 @@ private fun QuizAction(label: String, enabled: Boolean, onClick: () -> Unit, mod
 }
 
 @Composable
-private fun FeedbackPanel(state: UiState.Quiz, onNext: () -> Unit, onBannerTap: (correct: Boolean) -> Unit) {
+private fun FeedbackPanel(
+    state: UiState.Quiz,
+    onNext: () -> Unit,
+    revealed: Boolean,
+    onBannerTap: (correct: Boolean) -> Unit,
+) {
     val feedback = state.feedback
     Column(Modifier.fillMaxWidth().padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (feedback != null && feedback.retry) {
@@ -533,7 +551,7 @@ private fun FeedbackPanel(state: UiState.Quiz, onNext: () -> Unit, onBannerTap: 
                 // answer above the characters; on a correct one it still opens the details sheet.
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
                     .clickable(
-                        onClickLabel = if (correct) "Show the full details" else "Reveal the answer",
+                        onClickLabel = if (correct || revealed) "Show the full details" else "Reveal the answer",
                         role = Role.Button,
                     ) { onBannerTap(correct) },
                 shape = RoundedCornerShape(16.dp),
@@ -566,6 +584,19 @@ private fun FeedbackPanel(state: UiState.Quiz, onNext: () -> Unit, onBannerTap: 
                     }
                     if (correct || state.showAnswerOnWrong) {
                         Text(acceptedAnswers(state.card), style = MaterialTheme.typography.bodyLarge, color = content)
+                        if (!correct) {
+                            Text(
+                                "Tap for the full item details.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = content.copy(alpha = 0.8f),
+                            )
+                        }
+                    } else if (revealed) {
+                        Text(
+                            "Tap again for the full item details.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = content.copy(alpha = 0.8f),
+                        )
                     } else {
                         Text(
                             "The answer is hidden. Tap this banner to reveal it above the item.",
