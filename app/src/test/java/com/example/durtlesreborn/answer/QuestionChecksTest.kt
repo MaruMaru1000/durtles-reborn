@@ -46,6 +46,25 @@ class KanaTest {
         assertEquals("カンジ", Kana.toKatakana("かんじ"))
         assertEquals("かんじ", Kana.toHiragana("カンジ"))
     }
+
+    @Test
+    fun directKanaInputIsLeftAlone() {
+        // A Japanese IME sends small kana and voiced kana as characters; the romaji converter
+        // must not rewrite them.
+        assertEquals("きゃく", Kana.typed("", "きゃく"))
+        assertEquals("きゃく", Kana.typed("きゃ", "きゃく"))
+        assertEquals("び", Kana.typed("ひ", "び"))
+        assertEquals("ぱ", Kana.typed("は", "ぱ"))
+        assertEquals("しょっき", Kana.typed("", "しょっき"))
+    }
+
+    @Test
+    fun decomposedDakutenIsNormalized() {
+        // ひ + combining dakuten and は + combining handakuten become the precomposed kana.
+        assertEquals("び", Kana.normalize("ひ\u3099"))
+        assertEquals("ぱ", Kana.normalize("は\u309A"))
+        assertEquals("びゃく", Kana.normalize("ひ\u3099ゃく"))
+    }
 }
 
 class QuestionChecksTest {

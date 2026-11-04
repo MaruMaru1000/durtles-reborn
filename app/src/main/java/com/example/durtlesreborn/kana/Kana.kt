@@ -1,5 +1,6 @@
 package com.example.durtlesreborn.kana
 
+import java.text.Normalizer
 import java.util.Locale
 
 /** Port of the original PseudoIme: simulates a romaji-to-kana input method. */
@@ -30,6 +31,12 @@ object Kana {
             )
         }
     }
+
+    /**
+     * NFC, so a base kana followed by a combining dakuten or handakuten (what some IMEs send in a
+     * composing region) is the same character as the precomposed kana (ひ + ゛ becomes び).
+     */
+    fun normalize(text: String): String = Normalizer.normalize(text, Normalizer.Form.NFC)
 
     /**
      * Applies the input method to the range [editStart, editEnd) of [s] in place, like

@@ -5,6 +5,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import com.example.durtlesreborn.data.LessonInfo
+import com.example.durtlesreborn.kana.Kana
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.BorderStroke
@@ -310,7 +311,9 @@ private fun QuizScreen(
             stageBubble = null
         }
     }
-    // Keep the cursor at the end: the input method rewrites the text as the user types.
+    // Keep the cursor at the end: the input method rewrites the text as the user types. The value
+    // the IME sends is kept as-is (including its composing region) in onValueChange; this only
+    // pulls in changes made elsewhere (undo, a resumed session).
     var field by remember(card.itemId, card.kind) { mutableStateOf(TextFieldValue("")) }
     if (field.text != state.input) field = TextFieldValue(state.input, TextRange(state.input.length))
     // With the setting on, the field is focused for every question so typing can start at once.
@@ -467,7 +470,13 @@ private fun QuizScreen(
             // Typing after the answer is ignored, but the field keeps focus so the IME never closes.
             onValueChange = { value ->
                 if (!state.answered) {
-                    onInputChange(value.text)
+                    // Direct kana input arrives already converted. Keep the IME's composing region
+                    // so it can still form small kana and dakuten/handakuten (ひ -> び, は -> ぱ);
+                    // rebuilding the value with a collapsed cursor ends the composition and those
+                    // transformations then do nothing. Only a romaji conversion replaces it.
+                    val converted = if (card.kanaInput) Kana.typed(field.text, value.text) else value.text
+                    field = if (converted == value.text) value else TextFieldValue(converted, TextRange(converted.length))
+                    onInputChange(converted)
                 } else if (state.canUndo && value.text.length < state.input.length) {
                     // Backspace on the shown answer takes it back, the same as Undo and Back.
                     onUndo()

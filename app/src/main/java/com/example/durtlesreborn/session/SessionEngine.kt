@@ -161,7 +161,7 @@ class SessionEngine(
     fun submit(rawAnswer: String, check: (Question, String) -> AnswerVerdict): AnswerVerdict {
         val question = currentQuestion ?: return AnswerVerdict.NOK_WITHOUT_RETRY
         if (answered) return AnswerVerdict(correct)
-        var answer = rawAnswer
+        var answer = Kana.normalize(rawAnswer)
         if (answer.isEmpty()) return AnswerVerdict.NOK_WITH_RETRY
 
         if (question.kind.kana) {
