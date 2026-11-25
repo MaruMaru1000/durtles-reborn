@@ -1,5 +1,8 @@
 package com.example.durtlesreborn.ui
 
+import com.example.durtlesreborn.answer.Meaning
+import com.example.durtlesreborn.answer.Reading
+import com.example.durtlesreborn.answer.SubjectAnswers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -31,6 +34,26 @@ class AnswerRevealTest {
     @Test
     fun anItemWithoutAReadingShowsNothing() {
         assertNull(confirmationReading(answered = true, correct = true, reading = null))
+    }
+
+    private val answers = SubjectAnswers(
+        meanings = listOf(Meaning("How Many Times"), Meaning("How Often"), Meaning("Degree", acceptedAnswer = false)),
+        readings = listOf(Reading("なんど", acceptedAnswer = true, primary = true)),
+    )
+
+    @Test
+    fun aMeaningQuestionConfirmsTheMeaning() {
+        assertEquals("How Many Times, How Often", confirmationHint(readingQuestion = false, answers = answers))
+    }
+
+    @Test
+    fun aReadingQuestionConfirmsTheReading() {
+        assertEquals("なんど", confirmationHint(readingQuestion = true, answers = answers))
+    }
+
+    @Test
+    fun aMeaningQuestionWithNoAcceptedMeaningShowsNothing() {
+        assertNull(confirmationHint(readingQuestion = false, answers = SubjectAnswers(readings = answers.readings)))
     }
 
     @Test

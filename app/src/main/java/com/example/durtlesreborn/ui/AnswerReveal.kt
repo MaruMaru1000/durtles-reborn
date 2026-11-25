@@ -1,5 +1,18 @@
 package com.example.durtlesreborn.ui
 
+import com.example.durtlesreborn.answer.SubjectAnswers
+
+/**
+ * What a correct answer confirms above the item, in the question's own category: the accepted
+ * meanings for a meaning question, the reading for a reading question.
+ */
+internal fun confirmationHint(readingQuestion: Boolean, answers: SubjectAnswers): String? =
+    if (readingQuestion) {
+        answers.confirmationReading
+    } else {
+        answers.meanings.filter { it.acceptedAnswer }.joinToString(", ") { it.text }.ifEmpty { null }
+    }
+
 /**
  * The reading shown above the item once a question is answered. Only a correct answer reveals it:
  * a wrong answer must not give the reading away above the character, whatever the answer setting

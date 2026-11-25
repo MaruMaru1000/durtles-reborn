@@ -261,7 +261,7 @@ private fun TokenScreen(state: UiState.NeedsToken, onSubmit: (String) -> Unit) {
 }
 
 @Composable
-private fun QuizScreen(
+internal fun QuizScreen(
     state: UiState.Quiz,
     onInputChange: (String) -> Unit,
     onSubmit: () -> Unit,
@@ -383,16 +383,16 @@ private fun QuizScreen(
                 verticalArrangement = Arrangement.Center,
             ) {
                 val playable = state.answered && card.kind.hasAudio
-                // Furigana: the accepted reading above the characters, but only after a correct
-                // answer. A wrong answer keeps it hidden until the banner is tapped; then the
-                // accepted answer itself is shown there instead of opening the details sheet.
+                // Above the characters, only after a correct answer: the meaning for a meaning
+                // question, the reading for a reading question. A wrong answer keeps it hidden until
+                // the banner is tapped; then the accepted answer itself is shown there instead.
                 val revealedAnswer = if (state.answered && state.feedback?.correct == false && revealed) {
                     acceptedAnswers(card)
                 } else {
                     null
                 }
                 val confirmation = revealedAnswer
-                    ?: confirmationReading(state.answered, state.feedback?.correct, card.answers.confirmationReading)
+                    ?: confirmationReading(state.answered, state.feedback?.correct, confirmationHint(card.kanaInput, card.answers))
                 if (confirmation != null) {
                     Text(
                         text = confirmation,
@@ -401,7 +401,11 @@ private fun QuizScreen(
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                         modifier = Modifier.semantics {
-                            contentDescription = if (revealedAnswer != null) "Answer: $confirmation" else "Reading: $confirmation"
+                            contentDescription = when {
+                                revealedAnswer != null -> "Answer: $confirmation"
+                                card.kanaInput -> "Reading: $confirmation"
+                                else -> "Meaning: $confirmation"
+                            }
                         },
                     )
                 }
