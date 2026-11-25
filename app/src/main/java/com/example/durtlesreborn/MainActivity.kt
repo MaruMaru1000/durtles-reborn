@@ -61,6 +61,16 @@ class MainActivity : ComponentActivity() {
         askForNotificationPermission()
     }
 
+    /** Each time the app is opened, look for a newer release (GitHub build only; the updater limits how often). */
+    override fun onStart() {
+        super.onStart()
+        val container = (application as DurtlesApp).container
+        val updates = container.appUpdates ?: return
+        lifecycleScope.launch {
+            if (container.settingsStore.current().checkForUpdates) updates.check()
+        }
+    }
+
     /** Android 13 and later need the user's permission to show notifications; ask once, if they are switched on. */
     private fun askForNotificationPermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return

@@ -42,6 +42,8 @@ import androidx.compose.foundation.selection.toggleable
 import com.example.durtlesreborn.answer.CloseEnoughAction
 import com.example.durtlesreborn.notify.WidgetUpdater
 import com.example.durtlesreborn.settings.AppSettings
+import com.example.durtlesreborn.update.AppUpdates
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -86,6 +88,8 @@ fun SettingsScreen(
     onSignOut: () -> Unit,
     audioDownload: AudioDownload,
     onOpenAudio: () -> Unit,
+    /** GitHub build only; null hides the App updates section. */
+    updates: AppUpdates? = null,
 ) {
     val s = state.settings
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 12.dp)) {
@@ -183,6 +187,8 @@ fun SettingsScreen(
             onChange { it.copy(maxLessonSessionSize = value) }
         }
         ChoiceRow("Order", pretty(s.lessonOrder), lessonOrders.map { it to pretty(it) }) { name -> onChange { it.copy(lessonOrder = name) } }
+
+        updates?.let { UpdatesSection(it, s.checkForUpdates) { onChange { it.copy(checkForUpdates = !it.checkForUpdates) } } }
 
         BackupSection(state.message, onExport, onImport, onMessage)
 
@@ -387,4 +393,23 @@ private fun BackupSection(message: String?, onExport: suspend () -> String, onIm
         OutlinedButton(onClick = { open.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }) { Text("Restore") }
     }
     message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp)) }
+}
+
+/** GitHub build: whether to look for a newer release on opening, and a manual check. Installing happens in the popup. */
+@Composable
+private fun UpdatesSection(updates: AppUpdates, enabled: Boolean, onToggle: () -> Unit) {
+    val status by updates.status.collectAsState()
+    Section("App updates")
+    SwitchRow(
+        "Check for updates when the app opens",
+        "Looks for a newer release on GitHub and offers to install it. Off: the app never checks by itself.",
+        enabled,
+        onToggle,
+    )
+    Text(
+        updateStatusLine(status, updates.currentVersion),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    OutlinedButton(onClick = { updates.check(force = true) }, modifier = Modifier.padding(top = 8.dp)) { Text("Check now") }
 }

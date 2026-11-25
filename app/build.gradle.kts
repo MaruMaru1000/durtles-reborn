@@ -44,6 +44,19 @@ android {
         }
     }
 
+    // "github" is the build published on GitHub releases and checks there for updates; "store" is for
+    // F-Droid and Play, which forbid an app updating itself, and has no updater code or permission.
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("github") {
+            dimension = "distribution"
+            isDefault = true
+        }
+        create("store") {
+            dimension = "distribution"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -94,4 +107,9 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+}
+// With flavours there is no plain testDebugUnitTest in this module, so `./gradlew testDebugUnitTest`
+// would quietly skip the app's tests; keep that command covering both flavours.
+tasks.register("testDebugUnitTest") {
+    dependsOn("testGithubDebugUnitTest", "testStoreDebugUnitTest")
 }

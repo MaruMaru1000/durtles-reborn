@@ -76,6 +76,8 @@ data class AppSettings(
     val textStageLabels: Boolean = false,
     /** Feature flag for Graded Reading. Off means no entry, no background work and no examples. */
     val gradedReading: Boolean = false,
+    /** GitHub build only: look for a newer release when the app is opened, and offer to install it. */
+    val checkForUpdates: Boolean = true,
 ) {
     /** The configured order, or shuffle if the stored name is not one the app knows. */
     val subjectOrder: SubjectOrder get() = SubjectOrder.fromName(reviewOrder) ?: SubjectOrder.SHUFFLE
@@ -120,6 +122,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
         val theme = stringPreferencesKey("theme")
         val textStageLabels = booleanPreferencesKey("text_stage_labels")
         val gradedReading = booleanPreferencesKey("graded_reading")
+        val checkForUpdates = booleanPreferencesKey("check_for_updates")
     }
 
     val settings: Flow<AppSettings> = dataStore.data.map { p ->
@@ -157,6 +160,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
             theme = p[Keys.theme] ?: d.theme,
             textStageLabels = p[Keys.textStageLabels] ?: d.textStageLabels,
             gradedReading = p[Keys.gradedReading] ?: d.gradedReading,
+            checkForUpdates = p[Keys.checkForUpdates] ?: d.checkForUpdates,
         )
     }
 
@@ -193,6 +197,7 @@ class SettingsStore(private val dataStore: DataStore<Preferences>) {
             p[Keys.theme] = next.theme
             p[Keys.textStageLabels] = next.textStageLabels
             p[Keys.gradedReading] = next.gradedReading
+            p[Keys.checkForUpdates] = next.checkForUpdates
         }
     }
 }

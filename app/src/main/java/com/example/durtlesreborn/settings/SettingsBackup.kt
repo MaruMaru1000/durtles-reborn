@@ -111,6 +111,8 @@ object SettingsBackup {
             { s, v -> bool(v)?.let { s.copy(textStageLabels = it) } }),
         Spec("graded_reading", "Boolean", { it.gradedReading.toString() },
             { s, v -> bool(v)?.let { s.copy(gradedReading = it) } }),
+        Spec("check_for_updates", "Boolean", { it.checkForUpdates.toString() },
+            { s, v -> bool(v)?.let { s.copy(checkForUpdates = it) } }),
     )
 
     /** How many settings a backup written now contains. */

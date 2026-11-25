@@ -18,34 +18,59 @@ paste the password into an issue, a commit or a store listing.
 
 ## Build
 
+There are two flavours. `github` is the build published on GitHub releases; it checks the latest
+release when the app opens and offers to install a newer one (`update/` in `app/src/github`, with
+the `REQUEST_INSTALL_PACKAGES` permission). `store` is for F-Droid and Play, which forbid an app
+updating itself: it has no updater code and no install permission.
+
 ```bash
-./gradlew assembleRelease bundleRelease
+./gradlew assembleGithubRelease assembleStoreRelease bundleStoreRelease
 ```
 
 | Artifact | Path | Use |
 | --- | --- | --- |
-| APK | `app/build/outputs/apk/release/app-release.apk` | GitHub releases, sideloading, F-Droid (they rebuild it) |
-| AAB | `app/build/outputs/bundle/release/app-release.aab` | Google Play upload |
+| APK (github) | `app/build/outputs/apk/github/release/app-github-release.apk` | GitHub releases, sideloading |
+| APK (store) | `app/build/outputs/apk/store/release/app-store-release.apk` | F-Droid (they rebuild the `store` flavour) |
+| AAB (store) | `app/build/outputs/bundle/storeRelease/app-store-release.aab` | Google Play upload |
 
 The release build runs R8 (`isMinifyEnabled`), resource shrinking and `lintVitalRelease`. The
 signing config is read from `keystore.properties` at configuration time. Without that file the
 release build is simply left unsigned and still builds, which is what a store that signs from
 source (F-Droid) needs.
 
+### What the in-app updater expects from a GitHub release
+
+The app reads `https://api.github.com/repos/MaruMaru1000/durtles-reborn/releases/latest` (drafts and
+pre-releases are skipped by GitHub) and only installs when all of this holds:
+
+- The APK is attached as `durtles-reborn-<versionName>-<versionCode>.apk`, built from the **github**
+  flavour. The version code in the name must be higher than the installed one and must match the
+  APK's own `versionCode`.
+- `SHA256SUMS.txt` is attached and lists that APK (`<sha256>  <file name>`, as `sha256sum` writes it).
+  Without it the app refuses to install.
+- The APK is signed with the release key; the app compares the certificate before installing and
+  Android refuses another key anyway.
+
+The first update on a phone asks the user to allow installs from the app and to confirm the install.
+From Android 12 on, later updates can install without the confirmation, because the app is then the
+installer of record. Debug builds are signed with a different key and never update themselves.
+
 ## Every upload
 
 1. Bump `versionCode` in `app/build.gradle.kts` (Play refuses a code it has already seen).
    `versionName` is what users see; change it when the release is worth announcing.
-2. Run the two Gradle tasks above.
+2. Run the Gradle tasks above.
 3. Check the signature:
 
    ```bash
    "$ANDROID_HOME/build-tools/36.0.0/apksigner.bat" verify --print-certs \
-       app/build/outputs/apk/release/app-release.apk
+       app/build/outputs/apk/github/release/app-github-release.apk
    ```
 
    The SHA-256 digest must be the one in the table above.
-4. Record the SHA-256 of the artifacts if you publish checksums.
+4. Copy the github APK to `durtles-reborn-<versionName>-<versionCode>.apk`, write `SHA256SUMS.txt`
+   (`sha256sum durtles-reborn-*.apk durtles-reborn-*.aab > SHA256SUMS.txt`) and attach both to the
+   GitHub release; the in-app updater needs both.
 
 ## Installing over an existing build
 

@@ -27,6 +27,8 @@ import com.example.durtlesreborn.settings.KeystoreTokenCipher
 import com.example.durtlesreborn.strokes.StrokeRepository
 import com.example.durtlesreborn.settings.SettingsStore
 import com.example.durtlesreborn.settings.TokenStore
+import com.example.durtlesreborn.update.AppUpdates
+import com.example.durtlesreborn.update.AppUpdatesFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -60,6 +62,9 @@ class AppContainer(context: Context) {
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
+
+    /** Self-update from GitHub releases; null in store builds, which their store updates. */
+    val appUpdates: AppUpdates? = AppUpdatesFactory.create(appContext, http)
 
     /** The pronunciation clip store, shared by playback and the bulk download. */
     val audioCache = AudioCache(http, java.io.File(appContext.filesDir, "audio"))

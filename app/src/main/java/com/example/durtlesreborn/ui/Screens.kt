@@ -157,6 +157,10 @@ fun AppRoot(viewModel: MainViewModel) {
             else -> Unit
         }
     }
+    // GitHub build: offer a newer release when the app opens, but never in the middle of a session.
+    val updates = remember { (context.applicationContext as DurtlesApp).container.appUpdates }
+    updates?.let { UpdatePrompt(it, enabled = settings.checkForUpdates, busy = state is UiState.Quiz || state is UiState.Lesson) }
+
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.safeDrawingPadding()) {
             if (readingRoute != null) {
@@ -195,6 +199,7 @@ fun AppRoot(viewModel: MainViewModel) {
                 is UiState.Settings -> SettingsScreen(
                     s, viewModel::updateSettings, viewModel::closeSettings, viewModel::settingsBackup, viewModel::restoreSettings, viewModel::showSettingsMessage,
                     viewModel::syncNow, viewModel::signOut, audioDownload, viewModel::openAudioLevels,
+                    updates = updates,
                 )
                 is UiState.AudioLevels -> AudioLevelsScreen(
                     s, audioDownload, viewModel::closeAudioLevels, viewModel::deleteLevelAudio,
